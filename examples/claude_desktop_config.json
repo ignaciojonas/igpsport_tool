@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "igpsport": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/ijonas/Projects/personal/igpsport_tool",
+        "python",
+        "igpsport_mcp.py"
+      ]
+    }
+  }
+}
