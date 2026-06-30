@@ -77,7 +77,10 @@ def igpsport_create_workout(
         {"type": "step", "name": "Warm-up", "duration_seconds": 600,
          "intensity_class": "WarmUp"}
       `intensity_class` is one of WarmUp | Active | Rest | CoolDown.
-      Optional `power`: {"watts": [220, 240]} OR {"pct_ftp": [80, 90]}.
+      Optional target — a step may carry EITHER a power OR a heart-rate target,
+      not both:
+        - `power`: {"watts": [220, 240]} OR {"pct_ftp": [80, 90]}
+        - `heart_rate`: {"bpm": [145, 160]} OR {"hr_zone": 3}  (zone 1-5)
       Set `open_duration: true` (and omit duration_seconds) for a step that runs
       until the lap button is pressed.
 

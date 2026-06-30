@@ -16,7 +16,13 @@ from typing import Annotated, Literal, Optional, Union
 
 from pydantic import BaseModel, Field, model_validator
 
-from igpsport_client import PowerTarget, RepeatBlock, Workout, WorkoutStep
+from igpsport_client import (
+    HeartRateTarget,
+    PowerTarget,
+    RepeatBlock,
+    Workout,
+    WorkoutStep,
+)
 
 IntensityClass = Literal["WarmUp", "Active", "Rest", "CoolDown"]
 
@@ -46,6 +52,30 @@ class PowerIn(BaseModel):
         return PowerTarget(min_pct_ftp=self.pct_ftp[0], max_pct_ftp=self.pct_ftp[1])
 
 
+class HeartRateIn(BaseModel):
+    """Heart-rate target. Provide exactly one of `bpm` ([min, max]) or `hr_zone` (1-5)."""
+
+    bpm: Optional[tuple[int, int]] = Field(
+        default=None, description="Absolute heart-rate range in beats per minute, [min, max]."
+    )
+    hr_zone: Optional[int] = Field(
+        default=None, ge=1, le=5, description="Heart-rate zone, 1-5."
+    )
+
+    @model_validator(mode="after")
+    def _exactly_one(self) -> "HeartRateIn":
+        if (self.bpm is None) == (self.hr_zone is None):
+            raise ValueError("heart_rate must set exactly one of `bpm` or `hr_zone`")
+        if self.bpm is not None and self.bpm[0] > self.bpm[1]:
+            raise ValueError("bpm range must be [min, max] with min <= max")
+        return self
+
+    def to_heart_rate_target(self) -> HeartRateTarget:
+        if self.bpm is not None:
+            return HeartRateTarget(min_bpm=self.bpm[0], max_bpm=self.bpm[1])
+        return HeartRateTarget(zone=self.hr_zone)
+
+
 class StepIn(BaseModel):
     """A single workout step: warm-up, interval, recovery or cool-down."""
 
@@ -63,16 +93,23 @@ class StepIn(BaseModel):
     power: Optional[PowerIn] = Field(
         default=None, description="Optional power target (watts or %FTP)."
     )
+    heart_rate: Optional[HeartRateIn] = Field(
+        default=None, description="Optional heart-rate target (BPM range or HR zone)."
+    )
     open_duration: bool = Field(
         default=False,
         description="True = step runs until the lap button is pressed (no fixed duration).",
     )
 
     @model_validator(mode="after")
-    def _duration_required(self) -> "StepIn":
+    def _validate(self) -> "StepIn":
         if not self.open_duration and self.duration_seconds is None:
             raise ValueError(
                 f"step '{self.name}' needs duration_seconds (or open_duration=true)"
+            )
+        if self.power is not None and self.heart_rate is not None:
+            raise ValueError(
+                f"step '{self.name}' can target either power or heart_rate, not both"
             )
         return self
 
@@ -82,6 +119,7 @@ class StepIn(BaseModel):
             duration_seconds=self.duration_seconds,
             intensity_class=self.intensity_class,
             power=self.power.to_power_target() if self.power else None,
+            heart_rate=self.heart_rate.to_heart_rate_target() if self.heart_rate else None,
             open_duration=self.open_duration,
         )
 

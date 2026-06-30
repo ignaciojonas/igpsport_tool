@@ -86,12 +86,28 @@ class PowerTarget:
 
 
 @dataclass
+class HeartRateTarget:
+    """Heart-rate target. Use an absolute BPM range or an HR zone (1-5), not both."""
+    min_bpm: Optional[int] = None
+    max_bpm: Optional[int] = None
+    zone: Optional[int] = None  # 1-5
+
+    def to_igps(self) -> dict[str, Any]:
+        if self.zone is not None:
+            return {"unit": "HeartRate", "value": int(self.zone)}
+        lo = self.min_bpm if self.min_bpm is not None else self.max_bpm
+        hi = self.max_bpm if self.max_bpm is not None else self.min_bpm
+        return {"unit": "HeartRateCustom", "minValue": int(lo), "maxValue": int(hi)}
+
+
+@dataclass
 class WorkoutStep:
     """A single workout step (warm-up, interval, recovery, cool-down)."""
     name: str
     duration_seconds: Optional[int] = None  # None only when open_duration=True
     intensity_class: str = "Active"  # "WarmUp" | "Active" | "Rest" | "CoolDown"
     power: Optional[PowerTarget] = None
+    heart_rate: Optional[HeartRateTarget] = None
     open_duration: bool = False  # True = "until lap is pressed" (no fixed duration)
 
     def to_igps(self) -> dict[str, Any]:
@@ -108,8 +124,15 @@ class WorkoutStep:
                     f"Step '{self.name}' needs duration_seconds (or open_duration=True)"
                 )
             step["length"] = {"unit": "Second", "value": int(self.duration_seconds)}
+        # iGPSPORT steps carry a single intensityTarget: power XOR heart rate.
+        if self.power is not None and self.heart_rate is not None:
+            raise ValueError(
+                f"Step '{self.name}' can target either power or heart rate, not both"
+            )
         if self.power is not None:
             step["intensityTarget"] = self.power.to_igps()
+        elif self.heart_rate is not None:
+            step["intensityTarget"] = self.heart_rate.to_igps()
         return step
 
 

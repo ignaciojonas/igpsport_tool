@@ -11,8 +11,14 @@ from __future__ import annotations
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from igpsport_client import PowerTarget, RepeatBlock, Workout, WorkoutStep
-from igpsport_models import Block, PowerIn, StepIn, to_workout
+from igpsport_client import (
+    HeartRateTarget,
+    PowerTarget,
+    RepeatBlock,
+    Workout,
+    WorkoutStep,
+)
+from igpsport_models import Block, HeartRateIn, PowerIn, StepIn, to_workout
 
 # --- Example 4x4 as raw agent input (the validated workout) ---------------
 
@@ -113,6 +119,86 @@ def test_power_requires_exactly_one_unit():
 def test_power_range_must_be_ordered():
     with pytest.raises(ValidationError):
         PowerIn(watts=(250, 200))
+
+
+# --- heart-rate targets ---------------------------------------------------
+
+def test_bpm_range_maps_to_heart_rate_custom():
+    step = StepIn(
+        name="Tempo",
+        duration_seconds=1200,
+        intensity_class="Active",
+        heart_rate=HeartRateIn(bpm=(145, 160)),
+    )
+    target = step.to_step().to_igps()["intensityTarget"]
+    assert target == {"unit": "HeartRateCustom", "minValue": 145, "maxValue": 160}
+
+
+def test_hr_zone_maps_to_heart_rate_value():
+    step = StepIn(
+        name="Z3",
+        duration_seconds=600,
+        intensity_class="Active",
+        heart_rate=HeartRateIn(hr_zone=3),
+    )
+    target = step.to_step().to_igps()["intensityTarget"]
+    assert target == {"unit": "HeartRate", "value": 3}
+
+
+def test_heart_rate_requires_exactly_one_form():
+    with pytest.raises(ValidationError):
+        HeartRateIn(bpm=(140, 160), hr_zone=3)
+    with pytest.raises(ValidationError):
+        HeartRateIn()
+
+
+def test_hr_zone_out_of_range_is_rejected():
+    with pytest.raises(ValidationError):
+        HeartRateIn(hr_zone=6)
+
+
+def test_bpm_range_must_be_ordered():
+    with pytest.raises(ValidationError):
+        HeartRateIn(bpm=(160, 140))
+
+
+def test_step_cannot_target_both_power_and_heart_rate():
+    with pytest.raises(ValidationError):
+        StepIn(
+            name="Both",
+            duration_seconds=300,
+            intensity_class="Active",
+            power=PowerIn(watts=(200, 250)),
+            heart_rate=HeartRateIn(bpm=(150, 165)),
+        )
+
+
+def test_client_step_rejects_both_targets_directly():
+    step = WorkoutStep(
+        name="Both",
+        duration_seconds=300,
+        power=PowerTarget(min_watts=200, max_watts=250),
+        heart_rate=HeartRateTarget(min_bpm=150, max_bpm=165),
+    )
+    with pytest.raises(ValueError):
+        step.to_igps()
+
+
+def test_hr_workout_body_shape():
+    blocks_raw = [
+        {"type": "step", "name": "Warm-up", "duration_seconds": 600, "intensity_class": "WarmUp"},
+        {"type": "step", "name": "Tempo", "duration_seconds": 1200, "intensity_class": "Active",
+         "heart_rate": {"bpm": [145, 160]}},
+        {"type": "step", "name": "Cool-down", "duration_seconds": 300, "intensity_class": "CoolDown"},
+    ]
+    workout = to_workout("HR Tempo", "", _parse(blocks_raw))
+    body = workout.to_igps_body()["data"]
+    assert body["totalTime"] == 2100
+    assert body["structure"][1]["intensityTarget"] == {
+        "unit": "HeartRateCustom",
+        "minValue": 145,
+        "maxValue": 160,
+    }
 
 
 # --- open duration --------------------------------------------------------

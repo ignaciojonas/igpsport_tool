@@ -104,10 +104,12 @@ never echo your password.
 {
   "type": "step",
   "name": "Warm-up",
-  "duration_seconds": 600,         // omit only when open_duration is true
-  "intensity_class": "WarmUp",     // WarmUp | Active | Rest | CoolDown
-  "power": {"watts": [220, 240]},  // OR {"pct_ftp": [80, 90]} — optional, pick one
-  "open_duration": false           // optional; true = "until lap pressed"
+  "duration_seconds": 600,            // omit only when open_duration is true
+  "intensity_class": "WarmUp",        // WarmUp | Active | Rest | CoolDown
+  // Optional target — a step takes EITHER power OR heart_rate, not both:
+  "power": {"watts": [220, 240]},     // OR {"pct_ftp": [80, 90]}
+  "heart_rate": {"bpm": [145, 160]},  // OR {"hr_zone": 3}  (zone 1-5)
+  "open_duration": false              // optional; true = "until lap pressed"
 }
 
 // Repeat block

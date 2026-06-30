@@ -57,10 +57,13 @@ Discriminated union on a `type` field:
 {
   "type": "step",
   "name": "Warm-up",
-  "duration_seconds": 600,         // omit only when open_duration is true
-  "intensity_class": "WarmUp",     // WarmUp | Active | Rest | CoolDown
-  "power": {"watts": [220, 240]},  // OR {"pct_ftp": [80, 90]} — mutually exclusive; optional
-  "open_duration": false           // optional, default false ("until lap pressed")
+  "duration_seconds": 600,            // omit only when open_duration is true
+  "intensity_class": "WarmUp",        // WarmUp | Active | Rest | CoolDown
+  // Optional target — a step takes EITHER power OR heart_rate, not both
+  // (iGPSPORT's intensityTarget is singular):
+  "power": {"watts": [220, 240]},     // OR {"pct_ftp": [80, 90]}
+  "heart_rate": {"bpm": [145, 160]},  // OR {"hr_zone": 3} (zone 1-5)
+  "open_duration": false              // optional, default false ("until lap pressed")
 }
 
 // Repetition block
@@ -73,8 +76,12 @@ Discriminated union on a `type` field:
 ```
 
 `PowerIn` validates that exactly one of `watts` / `pct_ftp` is set, each a
-`[min, max]` pair. `to_workout()` maps these to the existing
-`WorkoutStep` / `RepeatBlock` / `PowerTarget` dataclasses.
+`[min, max]` pair. `HeartRateIn` validates exactly one of `bpm` (`[min, max]`)
+or `hr_zone` (1-5), mapping to `HeartRateCustom` / `HeartRate` units
+respectively. A step may carry a power **or** a heart-rate target, not both
+(iGPSPORT's `intensityTarget` is singular). `to_workout()` maps these to the
+existing `WorkoutStep` / `RepeatBlock` / `PowerTarget` / `HeartRateTarget`
+dataclasses.
 
 ## Credentials flow
 
