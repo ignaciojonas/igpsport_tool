@@ -1,5 +1,11 @@
 # igpsport-workouts-mcp
 
+> **Let any LLM create structured cycling workouts on your iGPSPORT bike computer** — through the Model Context Protocol.
+
+Expose iGPSPORT to any MCP-capable agent (Claude Desktop, Claude Code, or any
+other MCP client) so you can just say *"build me a 4x4 threshold session"* and
+have it appear on your head unit — no manual workout builder required.
+
 Standalone tool **and MCP server** to create, list and delete custom cycling
 workouts on iGPSPORT, straight from the command line or an AI agent. It uses an
 unofficial iGPSPORT endpoint (reverse-engineered from the MIT-licensed
