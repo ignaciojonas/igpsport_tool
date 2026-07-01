@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "igpsport": {
+    "igpsport-workouts": {
       "command": "uv",
       "args": [
         "run",

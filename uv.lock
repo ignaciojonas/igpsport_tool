@@ -402,7 +402,7 @@ wheels = [
 ]
 
 [[package]]
-name = "igpsport-tool"
+name = "igpsport-workouts-mcp"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

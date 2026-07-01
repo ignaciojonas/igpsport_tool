@@ -1,5 +1,5 @@
 [project]
-name = "igpsport-tool"
+name = "igpsport-workouts-mcp"
 version = "0.1.0"
 description = "Standalone tool + MCP server to create custom cycling workouts on iGPSPORT, without intervals.icu"
 readme = "README.md"

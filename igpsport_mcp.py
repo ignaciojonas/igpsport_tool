@@ -32,7 +32,7 @@ from igpsport_client import (
 from igpsport_credentials import CredentialsError, get_credentials
 from igpsport_models import Block, to_workout
 
-mcp = FastMCP("igpsport")
+mcp = FastMCP("igpsport-workouts")
 
 
 @mcp.tool()

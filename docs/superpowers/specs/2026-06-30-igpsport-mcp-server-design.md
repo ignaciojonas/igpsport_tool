@@ -99,7 +99,7 @@ secrets in `claude_desktop_config.json`. Env vars (`IGPSPORT_USER` /
 ## Claude Desktop registration
 
 ```json
-{ "mcpServers": { "igpsport": {
+{ "mcpServers": { "igpsport-workouts": {
   "command": "uv",
   "args": ["run", "--directory",
            "/Users/ijonas/Projects/personal/igpsport_tool",

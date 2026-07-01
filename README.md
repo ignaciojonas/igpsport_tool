@@ -1,4 +1,4 @@
-# igpsport_tool
+# igpsport-workouts-mcp
 
 Standalone tool **and MCP server** to create/edit custom cycling workouts on
 iGPSPORT, **without going through intervals.icu**. It uses the same unofficial
@@ -70,7 +70,7 @@ Merge `examples/claude_desktop_config.json` into your
 ```json
 {
   "mcpServers": {
-    "igpsport": {
+    "igpsport-workouts": {
       "command": "uv",
       "args": ["run", "--directory",
                "/Users/ijonas/Projects/personal/igpsport_tool",
@@ -86,7 +86,7 @@ Restart Claude Desktop after editing.
 ### Register with Claude Code
 
 ```bash
-claude mcp add igpsport -- uv run --directory /Users/ijonas/Projects/personal/igpsport_tool python igpsport_mcp.py
+claude mcp add igpsport-workouts -- uv run --directory /Users/ijonas/Projects/personal/igpsport_tool python igpsport_mcp.py
 ```
 
 ### Tools
