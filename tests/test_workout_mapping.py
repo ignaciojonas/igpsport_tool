@@ -11,12 +11,16 @@ from __future__ import annotations
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
+import igpsport_client
 from igpsport_client import (
+    IGPS_WORKOUT_DELETE_URL,
     HeartRateTarget,
+    IGPSportError,
     PowerTarget,
     RepeatBlock,
     Workout,
     WorkoutStep,
+    delete_workout,
 )
 from igpsport_models import Block, HeartRateIn, PowerIn, StepIn, to_workout
 
@@ -221,6 +225,64 @@ def test_edit_sets_id():
     workout = to_workout("Edited", "", _parse(EXAMPLE_BLOCKS_RAW), edit_workout_id=12345)
     body = workout.to_igps_body()["data"]
     assert body["id"] == "12345"
+
+
+# --- delete (offline request-shape checks) --------------------------------
+
+class _FakeResponse:
+    def __init__(self, payload, ok=True, status_code=200, text=""):
+        self._payload = payload
+        self.ok = ok
+        self.status_code = status_code
+        self.text = text
+
+    def json(self):
+        return self._payload
+
+
+class _FakeSession:
+    """Captures the last POST so we can assert URL + params + body without a network."""
+
+    def __init__(self, response):
+        self._response = response
+        self.last_url = None
+        self.last_params = None
+        self.last_json = None
+        self.last_headers = None
+
+    def post(self, url, params=None, json=None, headers=None):
+        self.last_url = url
+        self.last_params = params
+        self.last_json = json
+        self.last_headers = headers
+        return self._response
+
+
+def test_delete_builds_expected_request():
+    # Matches the request captured from the iGPSPORT app: id as query param,
+    # empty body, POST to CustomWorkOutDel.
+    session = _FakeSession(_FakeResponse({"code": 0, "data": True}))
+    result = delete_workout(session, {"Authorization": "Bearer x"}, 12345)
+
+    assert session.last_url == IGPS_WORKOUT_DELETE_URL
+    assert session.last_url.endswith("/WorkOut/CustomWorkOutDel")
+    assert session.last_params == {"id": 12345}
+    assert session.last_json == {}
+    assert session.last_headers == {"Authorization": "Bearer x"}
+    assert result == {"code": 0, "data": True}
+
+
+def test_delete_raises_on_nonzero_code():
+    session = _FakeSession(_FakeResponse({"code": 1, "msg": "not found"}))
+    with pytest.raises(IGPSportError):
+        delete_workout(session, {}, 999)
+
+
+def test_delete_raises_on_http_error():
+    session = _FakeSession(_FakeResponse({}, ok=False, status_code=404, text="Not Found"))
+    with pytest.raises(IGPSportError) as exc:
+        delete_workout(session, {}, 1)
+    assert "404" in str(exc.value)
 
 
 # --- discriminated union --------------------------------------------------

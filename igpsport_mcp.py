@@ -25,6 +25,7 @@ from igpsport_client import (
     AuthError,
     IGPSportError,
     create_workout,
+    delete_custom_workout,
     list_custom_workouts,
     login,
 )
@@ -95,6 +96,23 @@ def igpsport_create_workout(
         user, password = get_credentials()
         workout = to_workout(title, description, blocks, edit_workout_id=edit_workout_id)
         return create_workout(user, password, workout)
+    except (CredentialsError, AuthError, IGPSportError) as exc:
+        return {"ok": False, "error": str(exc)}
+    except requests.RequestException as exc:
+        return {"ok": False, "error": f"network error: {exc}"}
+
+
+@mcp.tool()
+def igpsport_delete_workout(workout_id: int) -> dict[str, Any]:
+    """Permanently delete a custom workout from your iGPSPORT account by id.
+
+    Deletion cannot be undone. Get the id from `igpsport_list_workouts`.
+
+    Returns {"ok": true, "workout_id": int} or {"ok": false, "error": "..."}.
+    """
+    try:
+        user, password = get_credentials()
+        return delete_custom_workout(user, password, workout_id)
     except (CredentialsError, AuthError, IGPSportError) as exc:
         return {"ok": False, "error": str(exc)}
     except requests.RequestException as exc:

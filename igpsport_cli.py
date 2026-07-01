@@ -30,6 +30,7 @@ from igpsport_client import (
     Workout,
     WorkoutStep,
     create_workout,
+    delete_custom_workout,
     list_custom_workouts,
     login,
 )
@@ -123,6 +124,25 @@ def cmd_upload_example(args: argparse.Namespace) -> None:
         )
 
 
+def cmd_delete(args: argparse.Namespace) -> None:
+    user, password = _credentials()
+
+    try:
+        result = delete_custom_workout(user, password, args.workout_id)
+    except (AuthError, IGPSportError) as exc:
+        # During guess-and-test the exception carries the raw iGPSPORT response.
+        if args.json:
+            print(json.dumps({"ok": False, "error": str(exc)}))
+        else:
+            print(f"✗ Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.json:
+        print(json.dumps(result, indent=2))
+    else:
+        print(f"✓ Workout {result['workout_id']} deleted")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="iGPSPORT workout tool (standalone)")
     parser.add_argument("--json", action="store_true", help="JSON output")
@@ -134,6 +154,10 @@ def main() -> None:
 
     p_upload = sub.add_parser("upload-example", help="Upload the example workout (4x4)")
     p_upload.set_defaults(func=cmd_upload_example)
+
+    p_delete = sub.add_parser("delete", help="Delete a custom workout by id")
+    p_delete.add_argument("workout_id", type=int, help="Workout id (see `list`)")
+    p_delete.set_defaults(func=cmd_delete)
 
     args = parser.parse_args()
     args.func(args)

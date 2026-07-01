@@ -32,6 +32,9 @@ LOGIN_URL = "https://i.igpsport.com/Auth/Login"
 IGPS_API = "https://prod.en.igpsport.com"
 IGPS_WORKOUT_LIST_URL = f"{IGPS_API}/service/mobile/api/WorkOut/CustomWorkout"
 IGPS_WORKOUT_EDIT_URL = f"{IGPS_API}/service/mobile/api/WorkOut/EditCustomWorkOut"
+# Captured from the iGPSPORT iPhone app: POST with the id as a query param and an
+# empty JSON body -> {"code": 0, "data": true}.
+IGPS_WORKOUT_DELETE_URL = f"{IGPS_API}/service/mobile/api/WorkOut/CustomWorkOutDel"
 
 
 class IGPSportError(Exception):
@@ -241,6 +244,34 @@ def upload_workout(
     return int(workout_id)
 
 
+def delete_workout(
+    session: requests.Session,
+    auth_headers: dict[str, str],
+    workout_id: int,
+) -> dict[str, Any]:
+    """Delete a custom workout by id and return the raw iGPSPORT response.
+
+    The id travels as a query parameter and the body is empty, matching the
+    request the iGPSPORT app sends. Raises IGPSportError with the HTTP status /
+    response body on failure.
+    """
+    resp = session.post(
+        IGPS_WORKOUT_DELETE_URL,
+        params={"id": int(workout_id)},
+        json={},
+        headers=auth_headers,
+    )
+    if not resp.ok:
+        raise IGPSportError(
+            f"HTTP {resp.status_code} while deleting workout {workout_id}: {resp.text[:500]}"
+        )
+
+    data = resp.json()
+    if data.get("code") != 0:
+        raise IGPSportError(f"iGPSPORT rejected the delete of {workout_id}: {data}")
+    return data
+
+
 # --------------------------------------------------------------------------
 # High-level function — this is what gets exposed as an MCP tool
 # --------------------------------------------------------------------------
@@ -265,3 +296,18 @@ def create_workout(
         "title": workout.title,
         "total_time_seconds": workout.total_time_seconds(),
     }
+
+
+def delete_custom_workout(
+    igp_user: str,
+    igp_password: str,
+    workout_id: int,
+) -> dict[str, Any]:
+    """Login + delete in a single step. Meant as a direct MCP tool wrapper.
+
+    Returns {"ok": True, "workout_id": 123} or raises IGPSportError / AuthError.
+    """
+    session = requests.Session()
+    auth_headers = login(session, igp_user, igp_password)
+    delete_workout(session, auth_headers, workout_id)
+    return {"ok": True, "workout_id": int(workout_id)}

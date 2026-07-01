@@ -53,8 +53,11 @@ uv run python igpsport_cli.py list
 # (10' warm-up, 4x[4' @ 220-240W / 3' @ 120-140W], 10' cool-down)
 uv run python igpsport_cli.py upload-example
 
-# JSON output (for scripting / debugging)
-uv run python igpsport_cli.py upload-example --json
+# Delete a workout by id (get the id from `list`)
+uv run python igpsport_cli.py delete 260231
+
+# JSON output (for scripting / debugging) — the global --json flag goes first
+uv run python igpsport_cli.py --json upload-example
 ```
 
 ## MCP server
@@ -91,6 +94,7 @@ claude mcp add igpsport -- uv run --directory /Users/ijonas/Projects/personal/ig
 - **`igpsport_list_workouts(page_size=50)`** — lists existing custom workouts.
 - **`igpsport_create_workout(title, description, blocks, edit_workout_id=None)`**
   — creates (or, with `edit_workout_id`, overwrites) a structured workout.
+- **`igpsport_delete_workout(workout_id)`** — permanently deletes a workout by id.
 
 Both return `{"ok": true, ...}` or `{"ok": false, "error": "..."}` — failures
 never echo your password.
@@ -172,5 +176,4 @@ iGPSPORT body with `totalTime == 2880`, plus schema validation.
 - **Unofficial** iGPSPORT API (reverse-engineered, like `intervalssync`). It can
   break if iGPSPORT changes its backend.
 - Cycling only (`workoutType: "bike"`).
-- No delete tool yet (the delete endpoint hasn't been reverse-engineered).
 - No OAuth — direct username/password against the login endpoint (over HTTPS).

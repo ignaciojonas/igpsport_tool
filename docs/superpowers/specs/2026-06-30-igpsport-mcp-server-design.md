@@ -14,7 +14,6 @@ This is a standalone path that does **not** go through intervals.icu.
 
 ## Non-goals (YAGNI)
 
-- Delete-workout tool (delete endpoint not reverse-engineered yet — deferred).
 - Sports other than cycling (`workoutType: "bike"` only).
 - OAuth (the API is username/password only).
 - A full `src/` package restructure (flat modules are fine for a personal tool).
@@ -47,6 +46,12 @@ one responsibility and the mapping layer is unit-testable offline.
   Creates a custom workout (or edits an existing one when `edit_workout_id` is
   given — edit folded into create rather than a separate tool). Returns
   `{"ok": true, "workout_id": int, "title": str, "total_time_seconds": int}`.
+
+- `igpsport_delete_workout(workout_id) -> dict`
+  Permanently deletes a workout. Endpoint captured from the iGPSPORT iPhone app
+  (mitmproxy): `POST /service/mobile/api/WorkOut/CustomWorkOutDel?id=<id>` with
+  an empty JSON body → `{"code": 0, "data": true}`. Returns
+  `{"ok": true, "workout_id": int}`.
 
 ## Agent-facing block schema (Pydantic)
 
