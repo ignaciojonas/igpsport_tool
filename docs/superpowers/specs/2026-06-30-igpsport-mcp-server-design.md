@@ -10,7 +10,7 @@ agent (Claude Desktop / Claude Code) can create and list iGPSPORT custom cycling
 workouts conversationally — "create me a 4x4 interval workout" → uploaded
 directly to the user's iGPSPORT account.
 
-This is a standalone path that does **not** go through intervals.icu.
+This is a self-contained, standalone tool.
 
 ## Non-goals (YAGNI)
 

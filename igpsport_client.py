@@ -1,8 +1,7 @@
 """
 igpsport_client.py
 
-Standalone client to create/edit iGPSPORT custom workouts, without going
-through intervals.icu.
+Standalone client to create, edit and delete iGPSPORT custom workouts.
 
 Reuses the authentication flow and the unofficial endpoint discovered in the
 open-source project intervalssync (jorge-huxley/intervalssync, MIT license):
@@ -13,8 +12,6 @@ Designed for:
   1) Direct CLI use (see igpsport_cli.py)
   2) Being wrapped as MCP server tools (every public function here is pure,
      with no global state, and returns JSON-serializable dicts/dataclasses).
-
-Requires no intervals.icu account whatsoever.
 """
 
 from __future__ import annotations
@@ -67,7 +64,7 @@ def login(session: requests.Session, user: str, password: str) -> dict[str, str]
 
 
 # --------------------------------------------------------------------------
-# Workout model — intermediate representation, independent of intervals.icu
+# Workout model — intermediate, self-contained representation
 # --------------------------------------------------------------------------
 
 @dataclass

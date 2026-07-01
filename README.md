@@ -1,10 +1,10 @@
 # igpsport-workouts-mcp
 
-Standalone tool **and MCP server** to create/edit custom cycling workouts on
-iGPSPORT, **without going through intervals.icu**. It uses the same unofficial
-endpoint discovered by the [intervalssync](https://github.com/jorge-huxley/intervalssync)
-project (MIT license), reimplemented here as an independent module with no
-intervals.icu dependency.
+Standalone tool **and MCP server** to create, list and delete custom cycling
+workouts on iGPSPORT, straight from the command line or an AI agent. It uses an
+unofficial iGPSPORT endpoint (reverse-engineered from the MIT-licensed
+[intervalssync](https://github.com/jorge-huxley/intervalssync) project),
+reimplemented here as an independent, self-contained module.
 
 Ask an agent *"create me a 4x4 interval workout at 220-240W"* and it lands
 directly in your iGPSPORT account.
@@ -173,7 +173,7 @@ iGPSPORT body with `totalTime == 2880`, plus schema validation.
 
 ## Known limitations
 
-- **Unofficial** iGPSPORT API (reverse-engineered, like `intervalssync`). It can
-  break if iGPSPORT changes its backend.
+- **Unofficial** iGPSPORT API (reverse-engineered). It can break if iGPSPORT
+  changes its backend.
 - Cycling only (`workoutType: "bike"`).
 - No OAuth — direct username/password against the login endpoint (over HTTPS).

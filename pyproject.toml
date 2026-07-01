@@ -1,7 +1,7 @@
 [project]
 name = "igpsport-workouts-mcp"
 version = "0.1.0"
-description = "Standalone tool + MCP server to create custom cycling workouts on iGPSPORT, without intervals.icu"
+description = "Standalone tool + MCP server to create, list and delete custom cycling workouts on iGPSPORT"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
